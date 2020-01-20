@@ -25,7 +25,8 @@
          (assoc simplest :Sigma #{\b})
          (assoc-in simplest [:delta 0] {\b 0})
          (assoc simplest :s 1)
-         (assoc simplest :F #{1})))
+         (assoc simplest :F #{1})
+         (assoc even-bs :delta {0 {\a 0} 1 {\b 0}})))
 
 (t/deftest test-step
   (t/are [s1 d s2] (= s1 (dfa/step1 d s2))

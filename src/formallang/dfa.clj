@@ -9,10 +9,10 @@
   "custom (validating) constructor"
   [K Sigma delta s F]
   {:pre [; delta: K → Sigma → K
-         (= K
-            (set (keys delta))
-            (->> delta vals (mapcat vals) set))
-         (= Sigma (->> delta vals (mapcat keys) set))
+         (and
+           (= K (set (keys delta))) ; K →
+           (every? #(= Sigma (set (keys %))) (vals delta)) ; Sigma →
+           (set/subset? (->> delta vals (mapcat vals) set) K)) ; K
          ; s ∈ K
          (contains? K s)
          ; F ⊆ K
