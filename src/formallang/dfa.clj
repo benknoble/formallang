@@ -34,10 +34,10 @@
 (defn step1
   "Runs the DFA for one step by applying the transition function delta.
 
-  Returns a Conf such that
-    - state nil if inputs were invalid
-    - word e if word has been exhausted
-    - conf →(DFA) Conf otherwise."
+   Returns a Conf such that
+   - state nil if inputs were invalid
+   - word e if word has been exhausted
+   - conf →(DFA) Conf otherwise."
   [dfa conf]
   (let [d (:delta dfa)
         {:keys [state word]} conf
@@ -129,9 +129,9 @@
                    prev
                    (for [p prev]
                      (->> (has-transition d p)
-                          (filter second)
-                          (map first)
-                          set))))]
+                       (filter second)
+                       (map first)
+                       set))))]
     ; true iff ¬ ∃q ∈ F: s →* q
     ; so since the fixed step function computes all states that can reach states
     ; in F, true iff s is not the set of states that can reach states in F
