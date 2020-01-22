@@ -160,3 +160,21 @@
   (t/are [d] (not (dfa/L-empty? d))
          simplest
          even-bs))
+
+(t/deftest test-delete-unreachable
+  (t/are [d1 d2] (= (dfa/delete-unreachable d1) d2)
+         simplest simplest
+         even-bs even-bs
+         (dfa/map->dfa
+           {:K #{0 1}
+            :Sigma #{\a}
+            :delta {0 {\a 0}
+                    1 {\a 1}}
+            :s 0
+            :F #{0 1}})
+         (dfa/map->dfa
+           {:K #{0}
+            :Sigma #{\a}
+            :delta {0 {\a 0}}
+            :s 0
+            :F #{0}})))

@@ -156,3 +156,21 @@
   "Returns the set of unreachable states of a DFA."
   [dfa]
   (set/difference (:K dfa) (reachable dfa)))
+
+(defn delete-unreachable
+  "Returns the DFA without its unreachable states."
+  [dfa]
+  (let [to-delete (unreachable dfa)
+        K (set/difference (:K dfa) to-delete)
+        F (set/difference (:F dfa) to-delete)
+        ; it is provable that, after deleting the unreachable nodes, there are
+        ; no nodes left that can transition to those nodes, so there are no
+        ; connections left to delete.
+        ;
+        ; Why?
+        ;
+        ; Because all the remaining nodes are reachable. If one had a connection
+        ; to a just-deleted (unreachable) node, it would have in fact been
+        ; reachable, a contradiction.
+        d (apply dissoc (:delta dfa) to-delete)]
+    (assoc dfa :K K :F F :delta d)))
