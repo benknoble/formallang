@@ -1,7 +1,10 @@
 (ns formallang.dfa
   (:require
     [clojure
-     [set :as set]]))
+     [set :as set]]
+    [formallang
+     [fix :as fix]
+     [functional :as func]]))
 
 (defrecord DFA [K Sigma delta s F])
 
@@ -105,3 +108,51 @@
   (let [{:keys [F K]} dfa
         f-comp (set/difference K F)]
     (map->dfa (assoc dfa :F f-comp))))
+
+(defn transitions
+  "Returns a map: K → P(K), where (k,v) ∈ map ⇔ state k has a transition to all
+   states in v."
+  [dfa]
+  (func/mmap (comp set vals) (:delta dfa)))
+
+(defn has-transition
+  "Returns a map: K -> Boolean, where (k,v) ∈ map ⇔ k has a transition to 'to'
+   if v."
+  [dfa to]
+  (func/mmap #(contains? % to) (transitions dfa)))
+
+(defn L-empty?
+  "True iff the language accepted by a DFA is ∅."
+  [dfa]
+  (letfn [(step [d prev]
+            (apply set/union ; prev ∪_{p ∈ prev} {x: x → p}
+                   prev
+                   (for [p prev]
+                     (->> (has-transition d p)
+                          (filter second)
+                          (map first)
+                          set))))]
+    ; true iff ¬ ∃q ∈ F: s →* q
+    ; so since the fixed step function computes all states that can reach states
+    ; in F, true iff s is not the set of states that can reach states in F
+    (not (contains?
+           ((fix/fix step (:F dfa)) dfa)
+           (:s dfa)))))
+
+(defn reachable
+  "Returns the set of reachable states of a DFA."
+  [dfa]
+  (letfn [(step [d prev]
+            (apply set/union
+                   prev
+                   (for [p prev
+                         a (:Sigma d)]
+                     (let [res (get-in (:delta d) [p a])]
+                       (when-not (contains? prev res)
+                         #{res})))))]
+    ((fix/fix step #{(:s dfa)}) dfa)))
+
+(defn unreachable
+  "Returns the set of unreachable states of a DFA."
+  [dfa]
+  (set/difference (:K dfa) (reachable dfa)))

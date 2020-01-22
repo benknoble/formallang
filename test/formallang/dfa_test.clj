@@ -102,3 +102,61 @@
                     1 {\a 1 \b 0}}
             :s 0
             :F #{1}})))
+
+(t/deftest test-transitions
+  (t/are [d m] (= (dfa/transitions d) m)
+         even-bs {0 #{0 1} 1 #{0 1}}))
+
+(t/deftest test-has-transition
+  (t/are [d s m] (= (dfa/has-transition d s) m)
+         even-bs 1 {0 true 1 true}
+         (dfa/map->dfa
+           {:K #{0 1}
+            :Sigma #{\a}
+            :delta {0 {\a 0}
+                    1 {\a 1}}
+            :s 0
+            :F #{0}}) 1 {0 false 1 true}))
+
+(t/deftest test-reachable
+  (t/are [d s] (= (dfa/reachable d) s)
+         simplest #{0}
+         even-bs #{0 1}
+         (dfa/map->dfa
+           {:K #{0 1}
+            :Sigma #{\a}
+            :delta {0 {\a 0}
+                    1 {\a 1}}
+            :s 0
+            :F #{0}}) #{0}))
+
+(t/deftest test-unreachable
+  (t/are [d s] (= (dfa/unreachable d) s)
+         simplest #{}
+         even-bs #{}
+         (dfa/map->dfa
+           {:K #{0 1}
+            :Sigma #{\a}
+            :delta {0 {\a 0}
+                    1 {\a 1}}
+            :s 0
+            :F #{0}}) #{1}))
+
+(t/deftest L-empty?
+  (t/are [d] (dfa/L-empty? d)
+         (dfa/map->dfa
+           {:K #{0}
+            :Sigma #{\a}
+            :delta {0 {\a 0}}
+            :s 0
+            :F #{}})
+         (dfa/map->dfa
+           {:K #{0 1}
+            :Sigma #{\a}
+            :delta {0 {\a 0}
+                    1 {\a 1}}
+            :s 0
+            :F #{1}}))
+  (t/are [d] (not (dfa/L-empty? d))
+         simplest
+         even-bs))
