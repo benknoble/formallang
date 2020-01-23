@@ -118,6 +118,35 @@
             :s 0
             :F #{0}}) 1 {0 false 1 true}))
 
+(def to-minimize
+  (dfa/map->dfa
+    {:K #{1 2 3 4 5 6 7 8}
+     :Sigma #{\a \b}
+     :delta {1 {\a 2 \b 4}
+             2 {\a 5 \b 3}
+             3 {\a 2 \b 6}
+             4 {\a 1 \b 5}
+             5 {\a 5 \b 5}
+             6 {\a 3 \b 5}
+             7 {\a 6 \b 8}
+             8 {\a 7 \b 3}}
+     :s 1
+     :F #{1 3 7}}))
+
+(def minimized
+  (dfa/map->dfa
+    {:K #{#{1 3}
+          #{4 6}
+          #{2}
+          #{5}}
+     :Sigma #{\a \b}
+     :delta {#{1 3} {\a #{2} \b #{4 6}}
+             #{4 6} {\a #{1 3} \b #{5}}
+             #{2} {\a #{5} \b #{1 3}}
+             #{5} {\a #{5} \b #{5}}}
+     :s #{1 3}
+     :F #{#{1 3}}}))
+
 (t/deftest test-reachable
   (t/are [d s] (= (dfa/reachable d) s)
          simplest #{0}
@@ -128,7 +157,8 @@
             :delta {0 {\a 0}
                     1 {\a 1}}
             :s 0
-            :F #{0}}) #{0}))
+            :F #{0}}) #{0}
+         to-minimize #{1 2 3 4 5 6}))
 
 (t/deftest test-unreachable
   (t/are [d s] (= (dfa/unreachable d) s)
@@ -140,7 +170,8 @@
             :delta {0 {\a 0}
                     1 {\a 1}}
             :s 0
-            :F #{0}}) #{1}))
+            :F #{0}}) #{1}
+         to-minimize #{7 8}))
 
 (t/deftest L-empty?
   (t/are [d] (dfa/L-empty? d)
@@ -159,7 +190,9 @@
             :F #{1}}))
   (t/are [d] (not (dfa/L-empty? d))
          simplest
-         even-bs))
+         even-bs
+         to-minimize
+         minimized))
 
 (t/deftest test-delete-unreachable
   (t/are [d1 d2] (= (dfa/delete-unreachable d1) d2)
@@ -178,3 +211,10 @@
             :delta {0 {\a 0}}
             :s 0
             :F #{0}})))
+
+(t/deftest test-equivalent-states
+  (t/are [d e] (= (dfa/equivalent-states d) e)
+         (dfa/delete-unreachable to-minimize) #{#{1 3}
+                                                #{4 6}
+                                                #{2}
+                                                #{5}}))

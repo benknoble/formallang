@@ -174,3 +174,35 @@
         ; reachable, a contradiction.
         d (apply dissoc (:delta dfa) to-delete)]
     (assoc dfa :K K :F F :delta d)))
+
+(defn equivalent-states
+  "Returns a set of sets, where each set is an equivalence class of states in
+   K."
+  [dfa]
+  (let [{:keys [K F Sigma delta]} dfa]
+    (letfn [(contains-pair [p q eqs]
+              (some (partial set/subset? (set [p q])) eqs))
+            (≡ [p q eqs]
+              (and (contains-pair p q eqs)
+                   (every?
+                     (fn [a] (contains-pair
+                               (get-in delta [p a])
+                               (get-in delta [q a])
+                               eqs))
+                     Sigma)))
+            (merge-pairs [ps]
+              (reduce
+                (fn [acc cur]
+                  (let [belongs-to (->> acc
+                                     (filter #(some (partial contains? %) cur))
+                                     first)
+                        acc' (disj acc belongs-to)
+                        cur' (set/union belongs-to cur)]
+                    (conj acc' cur')))
+                #{}
+                ps))
+            (step [_ prev]
+              (merge-pairs (for [p K
+                                 q K]
+                             (when (≡ p q prev) (set [p q])))))]
+      ((fix/fix step #{F (set/difference K F)}) dfa))))
