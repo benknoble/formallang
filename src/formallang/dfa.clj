@@ -202,7 +202,46 @@
                 #{}
                 ps))
             (step [_ prev]
-              (merge-pairs (for [p K
-                                 q K]
-                             (when (≡ p q prev) (set [p q])))))]
+              (merge-pairs (filter some?
+                                   (for [p K
+                                         q K]
+                                     (when (≡ p q prev) (set [p q]))))))]
       ((fix/fix step #{F (set/difference K F)}) dfa))))
+
+(defn- eq-state-map
+  "Returns a map: K → P(K) where (k, s) ∈ map means k is in the equivalence
+   class s."
+  [eqs]
+  (apply merge (for [eq eqs
+                     e eq]
+                 {e eq})))
+
+(defn merge-equivalent
+  "Returns a DFA recognizing the same language but with equivalent states
+   merged."
+  [dfa]
+  (let [{:keys [Sigma delta s F]} dfa
+        eqs (equivalent-states dfa)
+        eqm (eq-state-map eqs)
+        K' eqs
+        Sigma' Sigma
+        delta' (apply merge (for [k K']
+                              (let [q (first k)
+                                    d (get delta q)
+                                    d' (func/mmap (partial get eqm) d)]
+                                {k d'})))
+        s' (get eqm s)
+        ; equivalent (in theory) to (set (filter #(set/subset? % F) eqs))
+        F' (set (for [f F] (get eqm f)))]
+    (map->dfa {:K K' :Sigma Sigma' :delta delta' :s s' :F F'})))
+
+(defn minimize
+  "Returns a DFA recognizing the same language with the minimum number of
+   states."
+  [dfa]
+  ; written as a function to document automatically that it is, in fact, a
+  ; function
+  ;
+  ; equivalent to
+  ; (def minimize (comp merge-equivalent delete-unreachable))
+  ((comp merge-equivalent delete-unreachable) dfa))

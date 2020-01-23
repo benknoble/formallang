@@ -212,9 +212,59 @@
             :s 0
             :F #{0}})))
 
+(def ex1 (dfa/dfa
+           #{1 2 3 4 5}
+           #{:a :b}
+           {1 {:a 3 :b 2}
+            2 {:a 4 :b 1}
+            3 {:a 5 :b 4}
+            4 {:a 4 :b 4}
+            5 {:a 3 :b 2}}
+           1
+           #{1 5}))
+
+(def ex1m (dfa/dfa
+           #{#{1 5} #{2} #{3} #{4}}
+           #{:a :b}
+           {#{1 5} {:a #{3} :b #{2}}
+            #{2} {:a #{4} :b #{1 5}}
+            #{3} {:a #{1 5} :b #{4}}
+            #{4} {:a #{4} :b #{4}}}
+           #{1 5}
+           #{#{1 5}}))
+
+(def ex2 (dfa/dfa
+           #{1 2 3 4 5 6}
+           #{:a :b}
+           {1 {:a 2 :b 3}
+            2 {:a 2 :b 4}
+            3 {:a 3 :b 3}
+            4 {:a 6 :b 3}
+            5 {:a 5 :b 3}
+            6 {:a 5 :b 4}}
+           1
+           #{1 2 4 5 6}))
+
+(def ex2m (dfa/dfa
+            ; same but as singletons
+            #{#{1} #{2} #{3} #{4} #{5} #{6}}
+            #{:a :b}
+            {#{1} {:a #{2} :b #{3}}
+             #{2} {:a #{2} :b #{4}}
+             #{3} {:a #{3} :b #{3}}
+             #{4} {:a #{6} :b #{3}}
+             #{5} {:a #{5} :b #{3}}
+             #{6} {:a #{5} :b #{4}}}
+            #{1}
+            #{#{1} #{2} #{4} #{5} #{6}}))
+
 (t/deftest test-equivalent-states
   (t/are [d e] (= (dfa/equivalent-states d) e)
-         (dfa/delete-unreachable to-minimize) #{#{1 3}
-                                                #{4 6}
-                                                #{2}
-                                                #{5}}))
+         (dfa/delete-unreachable to-minimize) #{#{1 3} #{4 6} #{2} #{5}}
+         ex1 #{#{1 5} #{2} #{3} #{4}}))
+
+(t/deftest test-minimize
+  (t/are [d1 d2] (= (dfa/minimize d1) d2)
+         to-minimize minimized
+         ex1 ex1m
+         ex2 ex2m))
