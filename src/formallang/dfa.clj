@@ -190,22 +190,17 @@
                                (get-in delta [q a])
                                eqs))
                      Sigma)))
-            (merge-pairs [ps]
-              (reduce
-                (fn [acc cur]
-                  (let [belongs-to (->> acc
-                                     (filter #(some (partial contains? %) cur))
-                                     first)
-                        acc' (disj acc belongs-to)
-                        cur' (set/union belongs-to cur)]
-                    (conj acc' cur')))
-                #{}
-                ps))
             (step [_ prev]
-              (merge-pairs (filter some?
-                                   (for [p K
-                                         q K]
-                                     (when (≡ p q prev) (set [p q]))))))]
+              (-> (reduce
+                    (fn [acc p]
+                      (let [equivs (filter #(≡ p % prev) (keys acc))]
+                        (if-let [equiv (first equivs)]
+                          (update acc equiv conj p)
+                          (merge acc {p #{p}}))))
+                    {}
+                    K)
+                vals
+                set))]
       ((fix/fix step #{F (set/difference K F)}) dfa))))
 
 (defn- eq-state-map
