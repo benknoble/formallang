@@ -6,8 +6,10 @@ A formal-languages library for Clojure.
 
 ## Features
 
-- Regular expressions
 - Deterministic Finite Automata (DFA)
+
+**Coming soon**
+- Regular expressions (via NFA)
 - Context-free grammars
 
 ## Getting Started
@@ -22,3 +24,10 @@ deps.edn:
 ```
 
 Then execute `clojure -Sresolve-tags` to update the `:sha` from `:tag`.
+
+---
+
+Originally built to support a regular-expression/context-free grammar
+counter-example system (codename: wrongex, **coming soon**). See also [CS:
+Generating property-based
+counter-examples](https://cs.stackexchange.com/q/119661/61762)
