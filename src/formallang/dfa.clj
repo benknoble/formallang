@@ -1,10 +1,10 @@
 (ns formallang.dfa
   (:require
-    [clojure
-     [set :as set]]
-    [formallang
-     [fix :as fix]
-     [functional :as func]]))
+   [clojure
+    [set :as set]]
+   [formallang
+    [fix :as fix]
+    [functional :as func]]))
 
 (defrecord DFA [K Sigma delta s F])
 
@@ -13,9 +13,9 @@
   [K Sigma delta s F]
   {:pre [; delta: K → Sigma → K
          (and
-           (= K (set (keys delta))) ; K →
-           (every? #(= Sigma (set (keys %))) (vals delta)) ; Sigma →
-           (set/subset? (->> delta vals (mapcat vals) set) K)) ; K
+          (= K (set (keys delta))) ; K →
+          (every? #(= Sigma (set (keys %))) (vals delta)) ; Sigma →
+          (set/subset? (->> delta vals (mapcat vals) set) K)) ; K
          ; s ∈ K
          (contains? K s)
          ; F ⊆ K
@@ -34,10 +34,10 @@
 (defn step1
   "Runs the DFA for one step by applying the transition function delta.
 
-   Returns a Conf such that
-   - state nil if inputs were invalid
-   - word e if word has been exhausted
-   - conf →(DFA) Conf otherwise."
+  Returns a Conf such that
+  - state nil if inputs were invalid
+  - word e if word has been exhausted
+  - conf →(DFA) Conf otherwise."
   [dfa conf]
   (let [d (:delta dfa)
         {:keys [state word]} conf
@@ -52,17 +52,15 @@
   [conf]
   (let [{:keys [state word]} conf]
     (or
-      (= nil state) ; failed
-      (= e word)))) ; processed whole word
+     (= nil state) ; failed
+     (= e word)))) ; processed whole word
 
 (defn step-until
   "Iterates a DFA until the finished? or pred holds true for the current
   configuration."
   [pred dfa conf]
-  (if
-    (or
-      (finished? conf)
-      (pred conf))
+  (if (or (finished? conf)
+          (pred conf))
     conf
     (recur pred dfa (step1 dfa conf))))
 
@@ -80,8 +78,8 @@
   [dfa conf]
   (let [{:keys [state word]} conf]
     (and
-      (= e word)
-      (accepts-state? dfa state))))
+     (= e word)
+     (accepts-state? dfa state))))
 
 (defn yields1?
   "True iff Conf1 →(DFA) Conf2."
@@ -98,9 +96,9 @@
   "True iff ∃q ∈ F such that (s,input) →*(DFA) (q,e)."
   [dfa input]
   (accepts-conf?
-    dfa
-    (step* dfa {:state (:s dfa)
-                :word input})))
+   dfa
+   (step* dfa {:state (:s dfa)
+               :word input})))
 
 (defn invert
   "Returns the complement of a DFA."
@@ -111,13 +109,13 @@
 
 (defn transitions
   "Returns a map: K → P(K), where (k,v) ∈ map ⇔ state k has a transition to all
-   states in v."
+  states in v."
   [dfa]
   (func/mmap (comp set vals) (:delta dfa)))
 
 (defn has-transition
   "Returns a map: K -> Boolean, where (k,v) ∈ map ⇔ k has a transition to 'to'
-   if v."
+  if v."
   [dfa to]
   (func/mmap #(contains? % to) (transitions dfa)))
 
@@ -129,15 +127,15 @@
                    prev
                    (for [p prev]
                      (->> (has-transition d p)
-                       (filter second)
-                       (map first)
-                       set))))]
+                          (filter second)
+                          (map first)
+                          set))))]
     ; true iff ¬ ∃q ∈ F: s →* q
     ; so since the fixed step function computes all states that can reach states
     ; in F, true iff s is not the set of states that can reach states in F
     (not (contains?
-           ((fix/fix step (:F dfa)) dfa)
-           (:s dfa)))))
+          ((fix/fix step (:F dfa)) dfa)
+          (:s dfa)))))
 
 (defn reachable
   "Returns the set of reachable states of a DFA."
@@ -177,7 +175,7 @@
 
 (defn equivalent-states
   "Returns a set of sets, where each set is an equivalence class of states in
-   K."
+  K."
   [dfa]
   (let [{:keys [K F Sigma delta]} dfa]
     (letfn [(contains-pair [p q eqs]
@@ -185,27 +183,27 @@
             (≡ [p q eqs]
               (and (contains-pair p q eqs)
                    (every?
-                     (fn [a] (contains-pair
-                               (get-in delta [p a])
-                               (get-in delta [q a])
-                               eqs))
-                     Sigma)))
+                    (fn [a] (contains-pair
+                             (get-in delta [p a])
+                             (get-in delta [q a])
+                             eqs))
+                    Sigma)))
             (step [_ prev]
               (-> (reduce
-                    (fn [acc p]
-                      (let [equivs (filter #(≡ p % prev) (keys acc))]
-                        (if-let [equiv (first equivs)]
-                          (update acc equiv conj p)
-                          (merge acc {p #{p}}))))
-                    {}
-                    K)
-                vals
-                set))]
+                   (fn [acc p]
+                     (let [equivs (filter #(≡ p % prev) (keys acc))]
+                       (if-let [equiv (first equivs)]
+                         (update acc equiv conj p)
+                         (merge acc {p #{p}}))))
+                   {}
+                   K)
+                  vals
+                  set))]
       ((fix/fix step #{F (set/difference K F)}) dfa))))
 
 (defn- eq-state-map
   "Returns a map: K → P(K) where (k, s) ∈ map means k is in the equivalence
-   class s."
+  class s."
   [eqs]
   (apply merge (for [eq eqs
                      e eq]
@@ -213,7 +211,7 @@
 
 (defn merge-equivalent
   "Returns a DFA recognizing the same language but with equivalent states
-   merged."
+  merged."
   [dfa]
   (let [{:keys [Sigma delta s F]} dfa
         eqs (equivalent-states dfa)
@@ -232,7 +230,7 @@
 
 (defn minimize
   "Returns a DFA recognizing the same language with the minimum number of
-   states."
+  states."
   [dfa]
   ; written as a function to document automatically that it is, in fact, a
   ; function
