@@ -122,7 +122,7 @@
 (defn reachable
   "Returns the set of reachable states of a DFA."
   [dfa]
-  (letfn [(step [d prev]
+  (letfn [(step [prev d]
             (apply set/union
                    prev
                    (for [p prev
@@ -174,7 +174,7 @@
                              (get-in delta [q a])
                              eqs))
                     Sigma)))
-            (step [_ prev]
+            (step [prev _]
               (->> K
                    (reduce (fn [acc p]
                              (let [ks (keys acc)
