@@ -11,14 +11,14 @@
 (defn dfa
   "custom (validating) constructor"
   [K Sigma delta s F]
-  {:pre [; delta: K → Sigma → K
+  {:pre [;; delta: K → Sigma → K
          (and
           (= K (set (keys delta))) ; K →
           (every? #(= Sigma (set (keys %))) (vals delta)) ; Sigma →
           (set/subset? (->> delta vals (mapcat vals) set) K)) ; K
-         ; s ∈ K
+         ;; s ∈ K
          (contains? K s)
-         ; F ⊆ K
+         ;; F ⊆ K
          (set/subset? F K)]}
   (->DFA K Sigma delta s F))
 
@@ -130,9 +130,9 @@
                           (filter second)
                           (map first)
                           set))))]
-    ; true iff ¬ ∃q ∈ F: s →* q
-    ; so since the fixed step function computes all states that can reach states
-    ; in F, true iff s is not the set of states that can reach states in F
+    ;; true iff ¬ ∃q ∈ F: s →* q, so since the fixed step function computes all
+    ;; states that can reach states in F, true iff s is not the set of states
+    ;; that can reach states in F
     (not (contains?
           ((fix/fix step (:F dfa)) dfa)
           (:s dfa)))))
@@ -161,15 +161,15 @@
   (let [to-delete (unreachable dfa)
         K (set/difference (:K dfa) to-delete)
         F (set/difference (:F dfa) to-delete)
-        ; it is provable that, after deleting the unreachable nodes, there are
-        ; no nodes left that can transition to those nodes, so there are no
-        ; connections left to delete.
-        ;
-        ; Why?
-        ;
-        ; Because all the remaining nodes are reachable. If one had a connection
-        ; to a just-deleted (unreachable) node, it would have in fact been
-        ; reachable, a contradiction.
+        ;; it is provable that, after deleting the unreachable nodes, there are
+        ;; no nodes left that can transition to those nodes, so there are no
+        ;; connections left to delete.
+        ;;
+        ;; Why?
+        ;;
+        ;; Because all the remaining nodes are reachable. If one had a
+        ;; connection to a just-deleted (unreachable) node, it would have in
+        ;; fact been reachable, a contradiction.
         d (apply dissoc (:delta dfa) to-delete)]
     (assoc dfa :K K :F F :delta d)))
 
@@ -224,7 +224,7 @@
                                     d' (func/mmap (partial get eqm) d)]
                                 {k d'})))
         s' (get eqm s)
-        ; equivalent (in theory) to (set (filter #(set/subset? % F) eqs))
+        ;; equivalent (in theory) to (set (filter #(set/subset? % F) eqs))
         F' (set (for [f F] (get eqm f)))]
     (map->dfa {:K K' :Sigma Sigma' :delta delta' :s s' :F F'})))
 

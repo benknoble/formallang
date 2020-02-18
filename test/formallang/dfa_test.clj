@@ -246,7 +246,7 @@
           #{1 2 4 5 6}))
 
 (def ex2m (dfa/dfa
-           ; same but as singletons
+           ;; same but as singletons
            #{#{1} #{2} #{3} #{4} #{5} #{6}}
            #{:a :b}
            {#{1} {:a #{2} :b #{3}}
