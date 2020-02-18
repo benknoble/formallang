@@ -122,14 +122,14 @@
 (defn reachable
   "Returns the set of reachable states of a DFA."
   [dfa]
-  (letfn [(step [prev d]
+  (letfn [(step [prev]
             (apply set/union
                    prev
                    (for [p prev
-                         a (:Sigma d)]
+                         a (:Sigma dfa)]
                      (let [q (get-in (:delta dfa) [p a])]
                        #{q}))))]
-    ((fix/fix step #{(:s dfa)}) dfa)))
+    ((fix/fix step #{(:s dfa)}))))
 
 (defn unreachable
   "Returns the set of unreachable states of a DFA."
@@ -174,7 +174,7 @@
                              (get-in delta [q a])
                              eqs))
                     Sigma)))
-            (step [prev _]
+            (step [prev]
               (->> K
                    (reduce (fn [acc p]
                              (let [ks (keys acc)
@@ -185,7 +185,7 @@
                            {})
                    vals
                    set))]
-      ((fix/fix step #{F (set/difference K F)}) dfa))))
+      ((fix/fix step #{F (set/difference K F)})))))
 
 (defn- eq-state-map
   "Returns a map: K → P(K) where (k, s) ∈ map means k is in the equivalence
