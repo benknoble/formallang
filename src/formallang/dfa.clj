@@ -145,9 +145,8 @@
                    prev
                    (for [p prev
                          a (:Sigma d)]
-                     (let [res (get-in (:delta d) [p a])]
-                       (when-not (contains? prev res)
-                         #{res})))))]
+                     (let [q (get-in (:delta dfa) [p a])]
+                       #{q}))))]
     ((fix/fix step #{(:s dfa)}) dfa)))
 
 (defn unreachable
