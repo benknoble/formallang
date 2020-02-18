@@ -175,16 +175,16 @@
                              eqs))
                     Sigma)))
             (step [_ prev]
-              (-> (reduce
-                   (fn [acc p]
-                     (let [equivs (filter #(≡ p % prev) (keys acc))]
-                       (if-let [equiv (first equivs)]
-                         (update acc equiv conj p)
-                         (merge acc {p #{p}}))))
-                   {}
-                   K)
-                  vals
-                  set))]
+              (->> K
+                   (reduce (fn [acc p]
+                             (let [ks (keys acc)
+                                   classes (filter #(≡ p % prev) ks)]
+                               (if-let [clas (first classes)]
+                                 (update acc clas conj p)
+                                 (merge acc {p #{p}}))))
+                           {})
+                   vals
+                   set))]
       ((fix/fix step #{F (set/difference K F)}) dfa))))
 
 (defn- eq-state-map
