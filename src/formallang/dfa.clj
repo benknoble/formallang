@@ -119,24 +119,6 @@
   [dfa to]
   (func/mmap #(contains? % to) (transitions dfa)))
 
-(defn L-empty?
-  "True iff the language accepted by a DFA is ∅."
-  [dfa]
-  (letfn [(step [d prev]
-            (apply set/union ; prev ∪_{p ∈ prev} {x: x → p}
-                   prev
-                   (for [p prev]
-                     (->> (has-transition d p)
-                          (filter second)
-                          (map first)
-                          set))))]
-    ;; true iff ¬ ∃q ∈ F: s →* q, so since the fixed step function computes all
-    ;; states that can reach states in F, true iff s is not the set of states
-    ;; that can reach states in F
-    (not (contains?
-          ((fix/fix step (:F dfa)) dfa)
-          (:s dfa)))))
-
 (defn reachable
   "Returns the set of reachable states of a DFA."
   [dfa]
@@ -153,6 +135,11 @@
   "Returns the set of unreachable states of a DFA."
   [dfa]
   (set/difference (:K dfa) (reachable dfa)))
+
+(defn L-empty?
+  "True iff the language accepted by a DFA is ∅."
+  [dfa]
+  (not-any? (:F dfa) (reachable dfa)))
 
 (defn delete-unreachable
   "Returns the DFA without its unreachable states."
