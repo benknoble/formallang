@@ -228,13 +228,7 @@
         F' (set (for [f F] (get eqm f)))]
     (map->dfa {:K K' :Sigma Sigma' :delta delta' :s s' :F F'})))
 
-(defn minimize
+(def minimize
   "Returns a DFA recognizing the same language with the minimum number of
   states."
-  [dfa]
-  ; written as a function to document automatically that it is, in fact, a
-  ; function
-  ;
-  ; equivalent to
-  ; (def minimize (comp merge-equivalent delete-unreachable))
-  ((comp merge-equivalent delete-unreachable) dfa))
+  (comp merge-equivalent delete-unreachable))
